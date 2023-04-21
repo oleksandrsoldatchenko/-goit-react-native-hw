@@ -13,6 +13,8 @@ import {
   Dimensions,
 } from "react-native";
 
+import ImageBackgroundComponent from "./BackgroundImage";
+
 const initialState = {
   email: "",
   password: "",
@@ -42,68 +44,68 @@ export default function LoginScreen() {
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={styles.container}>
-        <ImageBackground
-          style={styles.image}
-          source={require("../assets/images/bgimage.jpg")}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS == "ios" ? "padding" : "height"}
-          >
-            <View
-              style={{
-                ...styles.form,
-                marginBottom: isShowKeyboard ? -240 : 0,
-                width: dimensions,
-              }}
+        <ImageBackgroundComponent>
+            <KeyboardAvoidingView
+              behavior={Platform.OS == "ios" ? "padding" : "height"}
             >
-              <View style={styles.header}>
-                <Text style={styles.headerTitle}>Войти</Text>
-              </View>
-              <View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Адрес электронной почты"
-                  placeholderTextColor="#BDBDBD"
-                  textAlign={"left"}
-                  onFocus={() => setIsShowKeyboard(true)}
-                  value={state.email}
-                  onChangeText={(value) =>
-                    setstate((prevState) => ({ ...prevState, email: value }))
-                  }
-                />
-              </View>
-              <View style={{ marginTop: 16 }}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Пароль"
-                  placeholderTextColor="#BDBDBD"
-                  textAlign={"left"}
-                  secureTextEntry={!passwordVisible}
-                  onFocus={() => setIsShowKeyboard(true)}
-                  value={state.password}
-                  onChangeText={(value) =>
-                    setstate((prevState) => ({ ...prevState, password: value }))
-                  }
-                />
+              <View
+                style={{
+                  ...styles.form,
+                  marginBottom: isShowKeyboard ? -240 : 0,
+                  width: dimensions,
+                }}
+              >
+                <View style={styles.header}>
+                  <Text style={styles.headerTitle}>Войти</Text>
+                </View>
+                <View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Адрес электронной почты"
+                    placeholderTextColor="#BDBDBD"
+                    textAlign={"left"}
+                    onFocus={() => setIsShowKeyboard(true)}
+                    value={state.email}
+                    onChangeText={(value) =>
+                      setstate((prevState) => ({ ...prevState, email: value }))
+                    }
+                  />
+                </View>
+                <View style={{ marginTop: 16 }}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Пароль"
+                    placeholderTextColor="#BDBDBD"
+                    textAlign={"left"}
+                    secureTextEntry={!passwordVisible}
+                    onFocus={() => setIsShowKeyboard(true)}
+                    value={state.password}
+                    onChangeText={(value) =>
+                      setstate((prevState) => ({
+                        ...prevState,
+                        password: value,
+                      }))
+                    }
+                  />
+                  <TouchableOpacity
+                    style={styles.showHidePasswordButton}
+                    onPress={togglePasswordVisibility}
+                  >
+                    <Text style={styles.showHidePasswordButtonText}>
+                      {passwordVisible ? "Скрыть" : "Показать"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
-                  style={styles.showHidePasswordButton}
-                  onPress={togglePasswordVisibility}
+                  activeOpacity={0.8}
+                  style={styles.btn}
+                  onPress={keyboardHide}
                 >
-                  <Text style={styles.showHidePasswordButtonText}>
-                    {passwordVisible ? "Скрыть" : "Показать"}
-                  </Text>
+                  <Text style={styles.btnTitle}>Войти</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={styles.btn}
-                onPress={keyboardHide}
-              >
-                <Text style={styles.btnTitle}>Войти</Text>
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        </ImageBackground>
+            </KeyboardAvoidingView>
+        </ImageBackgroundComponent>
       </View>
     </TouchableWithoutFeedback>
   );

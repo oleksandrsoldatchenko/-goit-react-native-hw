@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  ImageBackground,
   TextInput,
   TouchableOpacity,
   Platform,
@@ -12,6 +11,8 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from "react-native";
+
+import ImageBackgroundComponent from "./BackgroundImage";
 
 const initialState = {
   email: "",
@@ -43,10 +44,7 @@ export default function RegistrationScreen() {
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={styles.container}>
-        <ImageBackground
-          style={styles.image}
-          source={require("../assets/images/bgimage.jpg")}
-        >
+        <ImageBackgroundComponent>
           <KeyboardAvoidingView
             behavior={Platform.OS == "ios" ? "padding" : "height"}
           >
@@ -117,7 +115,8 @@ export default function RegistrationScreen() {
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
-        </ImageBackground>
+        </ImageBackgroundComponent>
+        {/* </ImageBackground> */}
       </View>
     </TouchableWithoutFeedback>
   );
