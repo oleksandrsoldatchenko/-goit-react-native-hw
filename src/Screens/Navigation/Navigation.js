@@ -1,6 +1,7 @@
 import { createStackNavigator } from "@react-navigation/stack";
 
 import Home from "../Home/Home";
+import PostsNav from "./PostsNav";
 import LoginScreen from "../LoginScreen/LoginScreen";
 import ProfileScreen from "../ProfileScreen/ProfileScreen";
 import CreatePostsScreen from "../CreatePostsScreen/CreatePostsScreen";
@@ -21,6 +22,7 @@ const Navigation = () => {
         name="CreatePostsScreen"
         component={CreatePostsScreen}
       />
+      <MainStack.Screen name="PostsNav" component={PostsNav} />
       <MainStack.Screen name="ProfileScreen" component={ProfileScreen} />
     </MainStack.Navigator>
   );
