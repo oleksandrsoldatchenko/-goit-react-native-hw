@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -9,9 +9,16 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
+import { useState, useEffect } from "react";
 import { FontAwesome } from "@expo/vector-icons";
+
 import { Camera } from "expo-camera";
 import * as Location from "expo-location";
+
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUploadPhoto } from "../../Redux/storage/storageOperations";
+import { fetchAddPost } from "../../Redux/posts/postsOperations";
+import { selectUserId } from "../../Redux/auth/authSelectors";
 
 const CreatePost = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
@@ -22,9 +29,14 @@ const CreatePost = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [isCameraReady, setIsCameraReady] = useState(false);
 
+  const dispatch = useDispatch();
+
+  const uid = useSelector(selectUserId);
+
   useEffect(() => {
     (async () => {
-      const { status: cameraStatus } = await Camera.requestPermissionsAsync();
+      const { status: cameraStatus } =
+        await Camera.requestCameraPermissionsAsync();
       if (cameraStatus !== "granted") {
         Alert.alert(
           "Ошибка",
@@ -75,12 +87,16 @@ const CreatePost = ({ navigation }) => {
     setTitle(text);
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!title || !location || !photoi) {
-      alert("Enter all data please!!!");
+      alert("Enter all data pleace!!!");
       return;
     }
-    navigation.navigate("PostList", { photoi, location, inputRegion, title });
+    const { payload } = await dispatch(fetchUploadPhoto(photoi));
+    await dispatch(
+      fetchAddPost({ photo: payload, title, inputRegion, location, uid })
+    );
+    navigation.navigate("PostList");
   };
 
   return (
@@ -104,7 +120,7 @@ const CreatePost = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.postImgAdd}
-            activeOpacity={0.7}
+            activeOpacity={0.5}
             onPress={takePhoto}
           >
             <FontAwesome name="camera" size={24} color="white" />
@@ -121,7 +137,7 @@ const CreatePost = ({ navigation }) => {
             <TextInput
               style={styles.postName}
               placeholder="Местность..."
-              inputMode="text"
+              inputMode="navigation"
               value={inputRegion}
             />
 

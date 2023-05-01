@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -16,9 +16,27 @@ import { StatusBar } from "expo-status-bar";
 
 const backgroundImage = require("../../Source/Photo_BG.png");
 
-export default function LoginScreen ({ navigation }) {
+import { useSelector, useDispatch } from "react-redux";
+import { selectIsAuth, selectUser } from "../../Redux/auth/authSelectors";
+import {
+  fetchLoginUser,
+  fetchCurrentUser,
+} from "../../Redux/auth/authOperations";
+import { fetchGetAllPosts } from "../../Redux/posts/postsOperations";
+
+export default function LoginScreen({ navigation }) {
+  const logedIn = useSelector(selectIsAuth);
+
+  if (logedIn) {
+    navigation.navigate("Home", { screen: "PostsScreen" });
+  }
+
+  //state
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
+
+  //redux
+  const dispatch = useDispatch();
 
   const handleMail = (text) => {
     setMail(text);
@@ -30,10 +48,15 @@ export default function LoginScreen ({ navigation }) {
 
   const register = () => {
     if (!mail || !password) {
-      alert("Enter all data please!");
+      alert("Enter all data pleace!!!");
       return;
     }
-    navigation.navigate("Home", { screen: "PostsScreen" });
+    dispatch(fetchLoginUser({ mail, password })).then((result) => {
+      result.type === "auth/fetchLoginUser/fulfilled" &&
+        navigation.navigate("Home", { screen: "PostsScreen" });
+      result.type !== "auth/fetchLoginUser/fulfilled" &&
+        alert("Incorrect login!!!");
+    });
   };
 
   const [isPasswordVisible, setPasswordVisible] = useState(false);
@@ -120,7 +143,7 @@ export default function LoginScreen ({ navigation }) {
       </ImageBackground>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

@@ -1,17 +1,42 @@
-import { Text, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
+import { Text, StyleSheet, TouchableOpacity } from "react-native";
+
 import { AntDesign, SimpleLineIcons, Feather } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
 import PostsNav from "../Navigation/PostsNav";
 import PostsScreen from "../PostsScreen/PostsScreen";
 import ProfileScreen from "../ProfileScreen/ProfileScreen";
 
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { fetchLogOutUser } from "../../Redux/auth/authOperations";
+import { fetchGetAllPosts } from "../../Redux/posts/postsOperations";
+import { fetchGetAllComments } from "../../Redux/comments/commentsOperations";
+
 const BottomTabs = createBottomTabNavigator();
 
 const Home = ({ navigation }) => {
+
+  const dispatch = useDispatch();
+
+  const handleLogOut = () => {
+    dispatch(fetchLogOutUser()).then((result) => {
+      result.type === "auth/fetchLogOutUser/fulfilled" &&
+        navigation.navigate("Login");
+      result.type !== "auth/fetchLogOutUser/fulfilled" &&
+        alert("Incorrect logOut!!!");
+    });
+  };
+
+  useEffect(() => {
+    dispatch(fetchGetAllComments());
+    dispatch(fetchGetAllPosts());
+  }, [dispatch]);
+
   return (
     <BottomTabs.Navigator
-      initialRouteName="Posts"
+      initialRouteName="PostsScreen"
       screenOptions={{
         tabBarShowLabel: false,
         tabBarStyle: { height: 80 },
@@ -29,7 +54,7 @@ const Home = ({ navigation }) => {
             <TouchableOpacity
               style={styles.logoutButton}
               activeOpacity={0.5}
-              onPress={() => navigation.navigate("Login")}
+              onPress={handleLogOut}
             >
               <Feather name="log-out" size={24} color="#BDBDBD" />
             </TouchableOpacity>
