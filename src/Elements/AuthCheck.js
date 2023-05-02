@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { fetchCurrentUser } from "../Redux/auth/authOperations";
 import { selectIsAuth, selectUser } from "../Redux/auth/authSelectors";
 
-const AuthChack = ({ children }) => {
+const AuthCheck = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -13,4 +13,4 @@ const AuthChack = ({ children }) => {
   return <>{children}</>;
 };
 
-export default AuthChack;
+export default AuthCheck;

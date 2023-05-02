@@ -1,43 +1,45 @@
+import { View, StyleSheet, Text, Image } from "react-native";
 import React from "react";
-import { View, StyleSheet, Image, Text } from "react-native";
+import { useSelector } from "react-redux";
+import { selectUser } from "../Redux/auth/authSelectors";
 
-const ProfileElement = ({ avatar, name, email }) => {
-  return (
-    <View style={styles.container}>
-      <Image source={avatar} style={styles.avatar} />
-      <View style={styles.info}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.email}>{email}</Text>
-      </View>
+const ProfileElement = () => {
+
+   const { user, name, photo } = useSelector(selectUser);
+
+   return(
+    <View style={ styles.profContainer }>
+        <Image source={ { uri: `${ photo }`} } style={ styles.profImg }></Image>
+        <View style={ styles.profInfo }>
+            <Text style={ styles.profName }>{ name }</Text>
+            <Text>{ user }</Text>
+        </View>
     </View>
-  );
+   )
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    marginLeft: 18,
-    marginTop: 32,
-    marginBottom: 20,
-  },
-  avatar: {
-    borderRadius: 15,
-    width: 60,
-    height: 60,
-  },
-  info: {
-    marginLeft: 12,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  email: {
-    fontSize: 14,
-    color: "#777",
-  },
+    profContainer:{
+      justifyContent: "flex-start",
+      flexDirection: "row",  
+      alignSelf: "flex-start",
+      marginTop: 32,
+      marginBottom: 20,
+      marginLeft: 20
+    },
+    profImg: {
+      borderRadius: 15,
+      width: 60,
+      height: 60
+    },
+    profInfo:{
+      justifyContent: "center",
+      marginLeft: 20
+    },
+    profName:{
+       fontWeight: "700"
+    }
 });
 
 export default ProfileElement;
+

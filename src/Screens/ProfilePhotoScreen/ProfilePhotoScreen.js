@@ -4,43 +4,64 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Image,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { FontAwesome } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
 import { fetchUploadPhoto } from "../../Redux/storage/storageOperations";
-
 import { Camera } from "expo-camera";
 
 const ProfilePhotoScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const [camera, setCamera] = useState(null);
-  const [photoi, setPhoto] = useState(null);
+  const [photo, setPhoto] = useState(null);
+  const [hasPermission, setHasPermission] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
+  }, []);
 
   const takePhoto = async () => {
-    const photo = await camera.takePictureAsync();
-    setPhoto(photo.uri);
+    if (camera) {
+      const photo = await camera.takePictureAsync();
+      setPhoto(photo.uri);
+    }
   };
 
-  const hendleCreate = async () => {
-    if (!photoi) {
+  const handleCreate = async () => {
+    if (!photo) {
       alert("Take photo!!!");
       return;
     }
-    const { payload } = await dispatch(fetchUploadPhoto(photoi));
-    navigation.navigate("Registratione", { photo: payload });
+    const { payload } = await dispatch(fetchUploadPhoto(photo));
+    navigation.navigate("Registration", { photo: payload });
   };
+
+  if (hasPermission === null) {
+    return <View />;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
 
   return (
     <View style={styles.postContainer}>
-      <Camera style={styles.postImg} ref={setCamera}>
-        <Image
-          source={{ uri: photoi }}
-          style={{ height: 220, width: 220, marginTop: -80 }}
-        />
+      <Camera
+        style={styles.postImg}
+        ref={(ref) => setCamera(ref)}
+        onCameraReady={() => setCamera(camera)}
+      >
+        {photo && (
+          <Image
+            source={{ uri: photo }}
+            style={{ height: 220, width: 220, marginTop: -80 }}
+          />
+        )}
       </Camera>
 
       <TouchableOpacity
@@ -52,14 +73,14 @@ const ProfilePhotoScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={photoi ? styles.postButtonActive : styles.postButton}
+        style={photo ? styles.postButtonActive : styles.postButton}
         activeOpacity={0.5}
-        onPress={hendleCreate}
+        onPress={handleCreate}
       >
-        <Text style={styles.postButtonText}>Publicate</Text>
+        <Text style={styles.postButtonText}>Опублікувати</Text>
       </TouchableOpacity>
 
-      <Text style={styles.postImgText}>Add photo</Text>
+      <Text style={styles.postImgText}>Додати фото</Text>
     </View>
   );
 };
@@ -119,6 +140,8 @@ const styles = StyleSheet.create({
   postButtonText: {
     color: "#fff",
     fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 19,
   },
   postName: {
     width: 343,

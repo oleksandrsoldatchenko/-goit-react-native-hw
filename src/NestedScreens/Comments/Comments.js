@@ -1,53 +1,34 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Image,
-  FlatList,
-  ScrollView,
-} from "react-native";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { EvilIcons, Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { fetchGetCommentsByUid } from "../../Redux/comments/commentsOperations";
-import { db } from "../../Api/firebase";
 import { useSelector } from "react-redux";
-import {
-  selectCommentsById,
-  selectComments,
-} from "../../Redux/comments/commentsSelectors";
-const img = require("../../Source/Rectangle23.png");
+import { View, Text, StyleSheet, Image, FlatList } from "react-native";
 
-const Comments = ({ navigation, route }) => {
+import { selectComments } from "../../Redux/comments/commentsSelectors";
+
+const Comments = ({ route}) => {
+
   const { postId, postImg } = route.params;
   const allComments = useSelector(selectComments);
-  const comments = allComments.filter((item) => item.postId === postId);
+  const comments = allComments.filter(item => item.postId === postId);
 
   return (
     <View style={styles.postContainer}>
       <View style={styles.postBody}>
         <Image
           source={{ uri: `${postImg}` }}
-          style={{ width: 380, height: 280, borderRadius: 15, marginTop: 15 }}
+          style={{ width: 343, height: 240, borderRadius: 8, marginTop: 32 }}
         />
         <View style={styles.commentList}>
           <FlatList
             data={comments}
-            keyExtractor={(item, indx) => indx.toString()}
-            renderItem={({ item, id }) => (
+            keyExtractor={(indx) => indx.toString()}
+            renderItem={({ item }) => (
               <View
                 style={{
                   display: "flex",
                   flexDirection: "row",
                   alignItems: "flex-start",
                   justifyContent: "space-around",
-                  marginBottom: 30,
+                  marginBottom: 24,
                 }}
               >
                 {comments.indexOf(item) % 2 == 0 ? (
@@ -56,9 +37,9 @@ const Comments = ({ navigation, route }) => {
                       <Image
                         source={{ uri: `${item.userPhoto}` }}
                         style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 25,
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
                           margin: 0,
                           padding: 0,
                         }}
@@ -77,9 +58,9 @@ const Comments = ({ navigation, route }) => {
                       <Image
                         source={{ uri: `${item.userPhoto}` }}
                         style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 25,
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
                           margin: 0,
                           padding: 0,
                         }}
@@ -91,16 +72,6 @@ const Comments = ({ navigation, route }) => {
             )}
           ></FlatList>
         </View>
-        {/* </ScrollView>  (comments.indexOf(item))? {<View style = {{ borderRadius: "50%" }}>
-                 <Image source={{ uri: `${ item.userPhoto }`}} style={{ width: 40, height: 40, borderRadius: 25, margin: 0, padding: 0 }}/>
-            </View>
-            <View style={styles.commentBody}>
-                 <Text >{ item.postText }</Text>
-            </View>} : <View style={styles.commentBody}>
-                 <Text >{ item.postText }</Text>
-            </View><View style = {{ borderRadius: "50%" }}>
-                 <Image source={{ uri: `${ item.userPhoto }`}} style={{ width: 40, height: 40, borderRadius: 25, margin: 0, padding: 0 }}/>
-            </View>*/}
       </View>
     </View>
   );
@@ -147,13 +118,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   commentBody: {
-    minHeight: 60,
+    padding: 16,
     backgroundColor: "#00000008",
     width: "80%",
-    paddingBottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 50,
+    borderRadius: "6px 0px 6px 6px",
+    fontWeight: 400,
+    fontSize: 13,
+    lineHeight: 18,
   },
 
   postImg: {
@@ -220,4 +191,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Comments;
+export  default Comments;
