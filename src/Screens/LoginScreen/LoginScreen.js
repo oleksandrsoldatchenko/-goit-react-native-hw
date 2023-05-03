@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   StyleSheet,
   Text,
@@ -7,118 +9,118 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Platform,
+  TouchableWithoutFeedback,
   Keyboard,
-  Dimensions,
 } from "react-native";
+
 import { StatusBar } from "expo-status-bar";
+import { selectIsAuth } from "../../Redux/auth/authSelectors";
+import { fetchLoginUser } from "../../Redux/auth/authOperations";
 
 const backgroundImage = require("../../Source/Photo_BG.png");
 
-export default function LoginScreen ({ navigation }) {
+const LoginScreen = ({ navigation }) => {
+  const loggedIn = useSelector(selectIsAuth);
+
+  useEffect(() => {
+    if (loggedIn) {
+      navigation.navigate("Home", { screen: "PostsScreen" });
+    }
+  }, [loggedIn]);
+
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
+
+  const dispatch = useDispatch();
 
   const handleMail = (text) => {
     setMail(text);
   };
-
   const handlePassword = (text) => {
     setPassword(text);
   };
 
   const register = () => {
     if (!mail || !password) {
-      alert("Enter all data please!");
+      alert("Enter all data please!!!");
       return;
     }
-    navigation.navigate("Home", { screen: "PostsScreen" });
+    dispatch(fetchLoginUser({ mail, password })).then((result) => {
+      result.type === "auth/fetchLoginUser/fulfilled" &&
+        navigation.navigate("Home", { screen: "PostsScreen" });
+      result.type !== "auth/fetchLoginUser/fulfilled" &&
+        alert("Incorrect login!!!");
+    });
   };
 
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [dimensions] = useState(Dimensions.get("window").width - 0 * 2);
-
-  const togglePasswordVisibility = () => {
-    setPasswordVisible((prevState) => !prevState);
-  };
-
-  const hideKeyboard = () => {
-    setIsKeyboardVisible(false);
-    Keyboard.dismiss();
-  };
+  const passShow = () => alert(`Your password is: ${password}`);
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <ImageBackground source={backgroundImage} style={styles.background}>
-        <TouchableWithoutFeedback onPress={hideKeyboard}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <ImageBackground
+          source={backgroundImage}
+          style={styles.backgroundImage}
+        >
           <KeyboardAvoidingView
             behavior={Platform.OS == "ios" ? "padding" : "height"}
             style={styles.keyboardAvoidingView}
           >
-            <View
-              style={{
-                marginBottom: isKeyboardVisible ? -170 : 0,
-                width: dimensions,
-              }}
-            >
-              <View style={styles.formContainer}>
-                <Text style={styles.title}>Войти</Text>
+            <View style={styles.contentContainer}>
+              <Text style={styles.title}>Увійти</Text>
 
-                <TextInput
-                  style={styles.inputField}
-                  placeholder="Адрес электронной почты"
-                  inputMode="email"
-                  value={mail}
-                  onFocus={() => setIsKeyboardVisible(true)}
-                  onChangeText={handleMail}
-                  autoCapitalize="none"
-                />
+              <TextInput
+                style={styles.textInput}
+                placeholder="Електронна адреса"
+                placeholderTextColor="#BDBDBD"
+                inputMode="email"
+                value={mail}
+                onChangeText={handleMail}
+                autoCapitalize="none"
+              />
+              <TextInput
+                style={styles.textInput}
+                placeholder="Пароль"
+                placeholderTextColor="#BDBDBD"
+                secureTextEntry={true}
+                value={password}
+                onChangeText={handlePassword}
+              />
 
-                <TextInput
-                  style={styles.inputField}
-                  placeholder="Пароль"
-                  placeholderTextColor="#BDBDBD"
-                  secureTextEntry={!isPasswordVisible}
-                  onFocus={() => setIsKeyboardVisible(true)}
-                  value={password}
-                  onChangeText={handlePassword}
-                />
+              <TouchableOpacity
+                style={styles.showPasswordButton}
+                activeOpacity={0.5}
+                onPress={passShow}
+              >
+                <Text style={styles.showPasswordButtonText}>Показати</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.showHidePasswordButton}
-                  onPress={togglePasswordVisibility}
-                >
-                  <Text style={styles.showHidePasswordButtonText}>
-                    {isPasswordVisible ? "Скрыть" : "Показать"}
-                  </Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.loginButton}
+                activeOpacity={0.5}
+                onPress={() => {
+                  register();
+                }}
+              >
+                <Text style={styles.loginButtonText}>Увійти</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.loginButton}
-                  activeOpacity={0.5}
-                  onPress={register}
-                >
-                  <Text style={styles.loginButtonText}>Войти</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.signupLink}
-                  activeOpacity={0.5}
-                  onPress={() => navigation.navigate("Registration")}
-                >
-                  <Text style={styles.signupLinkText}>
-                    Нет аккаунта? Зарегистрироваться
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.registerLink}
+                activeOpacity={0.5}
+                onPress={() => navigation.navigate("Registration", {})}
+              >
+                <Text style={styles.registerLinkText}>
+                  Ще не маєте акаунту? Зарееструватися
+                </Text>
+              </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
-      </ImageBackground>
-    </View>
+        </ImageBackground>
+        <StatusBar style="auto" />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -127,20 +129,20 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  background: {
+  backgroundImage: {
     flex: 1,
     justifyContent: "flex-end",
     width: "100%",
   },
-  formContainer: {
+  keyboardAvoidingView: {
+    justifyContent: "flex-end",
+  },
+  contentContainer: {
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     width: "100%",
     borderTopRightRadius: 25,
     borderTopLeftRadius: 25,
-  },
-  keyboardAvoidingView: {
-    justifyContent: "flex-end",
   },
   title: {
     fontWeight: "500",
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
     lineHeight: 35,
   },
-  inputField: {
+  textInput: {
     backgroundColor: "#F6F6F6",
     width: 343,
     height: 50,
@@ -160,6 +162,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     position: "relative",
   },
+  showPasswordButtonText: {
+    fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#1B4371",
+  },
+  showPasswordButton: {
+    top: -34,
+    left: 120,
+  },
   loginButton: {
     backgroundColor: "#FF6C00",
     height: 50,
@@ -170,29 +182,21 @@ const styles = StyleSheet.create({
     marginTop: 44,
   },
   loginButtonText: {
-    color: "#fff",
-    fontWeight: "400",
-    fontSize: 16,
-  },
-  signupLink: {
-    marginTop: 16,
-    marginBottom: 66,
-  },
-  signupLinkText: {
-    fontStyle: "normal",
     fontWeight: "400",
     fontSize: 16,
     lineHeight: 19,
-    color: "#1B4371",
+    color: "#fff",
   },
-  showHidePasswordButtonText: {
-    position: "absolute",
-    right: -170,
-    top: -35,
-    paddingRight: 10,
-    fontWeight: 400,
+  registerLink: {
+    marginTop: 16,
+    marginBottom: 66,
+  },
+  registerLinkText: {
+    fontWeight: "400",
     fontSize: 16,
     lineHeight: 19,
     color: "#1B4371",
   },
 });
+
+export default LoginScreen;

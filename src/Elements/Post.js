@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  ImageBackground,
-  Text,
-  TouchableOpacity,
-} from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { EvilIcons } from "@expo/vector-icons";
+import { View, StyleSheet, ImageBackground, Text, TouchableOpacity } from "react-native";
+import { useState, useEffect } from "react";
+import React from "react";
+import { Feather, EvilIcons } from '@expo/vector-icons'; 
 
-const Post = ({ img, text, msgs, location, gps, navigation }) => {
-  const [gpsLocation, setGpsLocation] = useState({});
 
-  useEffect(() => {
-    setGpsLocation(gps);
+const Post = ({ img, text, msgs, location, gps }) =>{
+
+  const [setGpsLocation] = useState({});  
+
+  useEffect (()=>{
+  setGpsLocation(gps);
   }, []);
 
   const clickComment = () => {
@@ -25,23 +21,27 @@ const Post = ({ img, text, msgs, location, gps, navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <ImageBackground
-        source={img}
-        style={styles.imageBackground}
-      ></ImageBackground>
-      <Text style={styles.text}>{text}</Text>
-      <View style={styles.infoContainer}>
-        <TouchableOpacity style={styles.info} onPress={clickComment}>
-          <Feather name="message-circle" size={20} color="gray" />
-          <Text style={styles.msgs}>{msgs}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.info} onPress={clickMap}>
-          <EvilIcons name="location" size={24} color="gray" />
-          <Text style={styles.location}>{location}</Text>
-        </TouchableOpacity>
+      <View style={ styles.container }>
+        <ImageBackground source={{ uri: `${ img }`}} style={ styles.postImg }></ImageBackground>
+        <Text style={ styles.posText } >{text}</Text>
+        <View style={ styles.infoContainer }>
+
+          <TouchableOpacity style={ styles.info } onPress={ () => navigation.navigate("Map", { location }) }>
+            <Feather name="message-circle" size={18} color="gray" />
+            <Text>{ msgs }</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={ styles.info } onPress={ () => navigation.navigate("Comments") }>
+            <Feather name="message-circle" size={18} color="gray" />
+            <Text>0</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={ styles.info } onPress={ clickMap } >
+            <EvilIcons name="location" size={24} color="gray" />
+            <Text style={ styles.infoLink }>{ location }</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
   );
 };
 
@@ -50,40 +50,34 @@ const styles = StyleSheet.create({
     width: 400,
     height: 400,
     justifyContent: "flex-start",
-    paddingLeft: 28,
-    paddingRight: 28,
+    padding: 10,
   },
-  imageBackground: {
+  postImg: {
     flex: 4,
     width: "100%",
+    height: "100%",
     borderRadius: 15,
     overflow: "hidden",
   },
-  text: {
+  posText: {
     textAlign: "left",
     marginTop: 8,
     fontWeight: "500",
     fontSize: 16,
   },
-  infoContainer: {
-    flexDirection: "row",
-    flex: 1,
-    justifyContent: "space-between",
-  },
   info: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 5,
-    paddingTop: 11,
+    padding: 10,
   },
-  msgs: {
-    paddingLeft: 9,
-    color: "gray",
-    fontSize: 16,
-  },
-  location: {
+  infoLink: {
     textDecorationLine: "underline",
-    fontSize: 16,
+  },
+  infoContainer: {
+    flexDirection: "row",
+    flex: 1,
+    justifyContent: "space-between",
   },
 });
 

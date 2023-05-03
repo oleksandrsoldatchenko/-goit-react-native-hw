@@ -7,144 +7,130 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Platform,
+  TouchableWithoutFeedback,
   Keyboard,
-  Dimensions,
+  Image
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import { useDispatch } from "react-redux";
 
-const backgroundImage = require("../../Source/Photo_BG.png");
-const buttonImg = require("./add.png");
+import { StatusBar } from 'expo-status-bar';
+import { AntDesign } from '@expo/vector-icons';
 
-export default function RegistrationScreen ({ navigation }) {
-  const [login, setLogin] = useState("");
-  const [mail, setMail] = useState("");
-  const [password, setPassword] = useState("");
+import { fetchRegisterUser } from "../../Redux/auth/authOperations";
 
-  const handleLogin = (text) => {
-    setLogin(text);
-  };
-  const handleMail = (text) => {
-    setMail(text);
-  };
-  const handlePassword = (text) => {
-    setPassword(text);
-  };
+const backgroundImage = require('../../Source/Photo_BG.png');
 
-  const register = () => {
-    if (!login || !mail || !password) {
-      alert("Enter all data please!");
-      return;
+const RegistrationScreen = ({ navigation, route }) => {
+
+const { photo } = route.params;
+const dispatch = useDispatch();
+
+const [login, setLogin] = useState('');
+const [mail, setMail] = useState('');
+const [password, setPassword] = useState('');
+
+const handleLogin = (text) => setLogin(text);
+const handleMail = (text) => setMail(text);
+const handlePassword = (text) => setPassword(text);
+
+const register = () => {
+  if (!login || !mail || !password) {
+    alert("Enter all data please!!!");
+    return;
+  }
+  dispatch(fetchRegisterUser({ mail, password, login, photo }))
+  .then(result => {
+    if (result.type === 'auth/fetchRegisterUser/fulfilled') {
+      navigation.navigate('Home', { screen: 'PostsScreen' });
+    } else {
+      alert('Incorrect registration!!!');
     }
-    navigation.navigate("Home", { screen: "PostsScreen" });
-  };
+  });
+}
 
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [dimensions] = useState(Dimensions.get("window").width - 0 * 2);
+const takePhoto = () => navigation.navigate('ProfilePhotoScreen');
 
-  const togglePasswordVisibility = () => {
-    setPasswordVisible((prevState) => !prevState);
-  };
-
-  const hideKeyboard = () => {
-    setIsKeyboardVisible(false);
-    Keyboard.dismiss();
-  };
+const showPassword = () => alert(`Your password is: ${password}`);
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <ImageBackground source={backgroundImage} style={styles.background}>
-        <TouchableWithoutFeedback onPress={hideKeyboard}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <ImageBackground
+          source={backgroundImage}
+          style={styles.backgroundImage}
+        >
           <KeyboardAvoidingView
             behavior={Platform.OS == "ios" ? "padding" : "height"}
             style={styles.keyboardAvoidingView}
           >
-            <View
-              style={{
-                marginBottom: isKeyboardVisible ? -170 : 0,
-                width: dimensions,
-              }}
-            >
-              <View style={styles.formContainer}>
-                <View style={styles.photoContainer}>
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    activeOpacity={0.5}
-                  >
-                    <ImageBackground
-                      source={buttonImg}
-                      style={{ width: "100%", height: "100%" }}
-                    ></ImageBackground>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.title}>Регистрация</Text>
-
-                <TextInput
-                  style={styles.inputField}
-                  placeholder="Логин"
-                  inputMode="text"
-                  onFocus={() => setIsKeyboardVisible(true)}
-                  value={login}
-                  onChangeText={handleLogin}
-                />
-                <TextInput
-                  style={styles.inputField}
-                  placeholder="Адрес электронной почты"
-                  inputMode="email"
-                  value={mail}
-                  onFocus={() => setIsKeyboardVisible(true)}
-                  onChangeText={handleMail}
-                  autoCapitalize="none"
-                />
-                <TextInput
-                  style={styles.inputField}
-                  placeholder="Пароль"
-                  placeholderTextColor="#BDBDBD"
-                  secureTextEntry={!isPasswordVisible}
-                  onFocus={() => setIsKeyboardVisible(true)}
-                  value={password}
-                  onChangeText={handlePassword}
-                />
-
-                <TouchableOpacity
-                  style={styles.showHidePasswordButton}
-                  onPress={togglePasswordVisibility}
-                >
-                  <Text style={styles.showHidePasswordButtonText}>
-                    {isPasswordVisible ? "Скрыть" : "Показать"}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.registerButton}
-                  activeOpacity={0.5}
-                  onPress={register}
-                >
-                  <Text style={styles.registerButtonText}>
-                    Зарегистрироваться
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.loginLink}
-                  activeOpacity={0.5}
-                  onPress={() => navigation.navigate("Login")}
-                >
-                  <Text style={styles.loginLinkText}>
-                    Уже есть аккаунт? Войти
-                  </Text>
-                </TouchableOpacity>
+            <View style={styles.innerContainer}>
+              <View style={styles.photoContainer}>
+                {photo && (
+                  <Image
+                    source={{ uri: `${photo}` }}
+                    style={styles.profilePhoto}
+                  />
+                )}
               </View>
+              <TouchableOpacity
+                style={styles.addButton}
+                activeOpacity={0.5}
+                onPress={takePhoto}
+              >
+                <AntDesign name="pluscircleo" size={24} color="red" />
+              </TouchableOpacity>
+              <Text style={styles.title}>Реєстрація</Text>
+              <TextInput
+                style={styles.inputLogin}
+                placeholder="Імя"
+                inputMode="text"
+                value={login}
+                onChangeText={handleLogin}
+              />
+              <TextInput
+                style={styles.inputMailPass}
+                placeholder="Електронна адреса"
+                inputMode="email"
+                value={mail}
+                onChangeText={handleMail}
+              />
+              <TextInput
+                style={styles.inputMailPass}
+                placeholder="Пароль"
+                secureTextEntry={true}
+                value={password}
+                onChangeText={handlePassword}
+              />
+              <TouchableOpacity
+                style={styles.passwordShowButton}
+                activeOpacity={0.5}
+                onPress={showPassword}
+              >
+                <Text style={styles.passwordShowText}>Показати</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.registerButton}
+                activeOpacity={0.5}
+                onPress={register}
+              >
+                <Text style={styles.registerButtonText}>Зарееструватися</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.loginLink}
+                activeOpacity={0.5}
+                onPress={() => navigation.navigate("Login")}
+              >
+                <Text style={styles.loginLinkText}>
+                  Вже є аккаунт? Увійти
+                </Text>
+              </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
-      </ImageBackground>
-      <StatusBar style="auto" />
-    </View>
+        </ImageBackground>
+        <StatusBar style="auto" />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -153,12 +139,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  background: {
+  backgroundImage: {
     flex: 1,
     justifyContent: "flex-end",
     width: "100%",
   },
-  formContainer: {
+  profilePhoto: {
+    width: "100%",
+    height: "100%",
+    overflow: "hidden",
+    alignSelf: "center",
+  },
+  innerContainer: {
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     width: "100%",
@@ -169,17 +161,18 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   photoContainer: {
+    position: "relative",
     marginTop: -60,
     height: 120,
     width: 120,
     backgroundColor: "#F6F6F6",
     borderRadius: 16,
+    overflow: "hidden",
   },
   addButton: {
-    marginTop: "65%",
-    left: "90%",
-    height: 25,
-    width: 25,
+    position: "absolute",
+    left: "62%",
+    top: 10,
     pointerEvents: "auto",
   },
   title: {
@@ -188,7 +181,19 @@ const styles = StyleSheet.create({
     marginTop: 32,
     lineHeight: 35,
   },
-  inputField: {
+  inputLogin: {
+    backgroundColor: "#F6F6F6",
+    width: 343,
+    height: 50,
+    borderRadius: 8,
+    marginTop: 33,
+    padding: 16,
+    fontStyle: "normal",
+    fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 19,
+  },
+  inputMailPass: {
     backgroundColor: "#F6F6F6",
     width: 343,
     height: 50,
@@ -200,6 +205,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     position: "relative",
   },
+  passwordShowText: {
+    fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#1B4371",
+  },
+  passwordShowButton: {
+    top: -34,
+    left: 120,
+  },
   registerButton: {
     backgroundColor: "#FF6C00",
     height: 50,
@@ -210,29 +225,21 @@ const styles = StyleSheet.create({
     marginTop: 44,
   },
   registerButtonText: {
-    color: "#fff",
     fontWeight: "400",
     fontSize: 16,
+    lineHeight: 19,
+    color: "#fff",
   },
   loginLink: {
     marginTop: 16,
     marginBottom: 66,
   },
   loginLinkText: {
-    fontStyle: "normal",
     fontWeight: "400",
     fontSize: 16,
     lineHeight: 19,
     color: "#1B4371",
   },
-  showHidePasswordButtonText: {
-    position: "absolute",
-    right: -170,
-    top: -35,
-    paddingRight: 10,
-    fontWeight: 400,
-    fontSize: 16,
-    lineHeight: 19,
-    color: "#1B4371",
-  },
 });
+
+export default RegistrationScreen;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,12 +6,18 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
-  KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
+import { useState, useEffect } from "react";
 import { FontAwesome } from "@expo/vector-icons";
+
 import { Camera } from "expo-camera";
 import * as Location from "expo-location";
+
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUploadPhoto } from "../../Redux/storage/storageOperations";
+import { fetchAddPost } from "../../Redux/posts/postsOperations";
+import { selectUserId } from "../../Redux/auth/authSelectors";
 
 const CreatePost = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
@@ -20,176 +26,152 @@ const CreatePost = ({ navigation }) => {
   const [region, setRegion] = useState(null);
   const [inputRegion, setInputRegion] = useState("");
   const [title, setTitle] = useState("");
-  const [isCameraReady, setIsCameraReady] = useState(false);
+
+  const dispatch = useDispatch();
+
+  const uid = useSelector(selectUserId);
 
   useEffect(() => {
     (async () => {
-      const { status: cameraStatus } = await Camera.requestPermissionsAsync();
-      if (cameraStatus !== "granted") {
-        Alert.alert(
-          "Ошибка",
-          "Отсутствуют разрешения на использование камеры."
-        );
-        return;
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
       }
 
-      const { status: locationStatus } =
-        await Location.requestForegroundPermissionsAsync();
-      if (locationStatus !== "granted") {
-        Alert.alert(
-          "Ошибка",
-          "Отсутствуют разрешения на использование местоположения."
-        );
-        return;
-      }
-
-      try {
-        const locationPos = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = locationPos.coords;
-        const coords = { latitude, longitude };
-        setLocation(coords);
-
-        const regionName = await Location.reverseGeocodeAsync(coords);
-        setRegion(regionName);
-      } catch (error) {
-        Alert.alert("Ошибка", "Не удалось получить местоположение.");
-      }
-
-      setIsCameraReady(true);
+      Location.getCurrentPositionAsync({})
+        .then((locationPos) => {
+          const coords = {
+            latitude: locationPos.coords.latitude,
+            longitude: locationPos.coords.longitude,
+          };
+          setLocation(coords);
+          return coords;
+        })
+        .then((coords) => {
+          return Location.reverseGeocodeAsync(coords);
+        })
+        .then((regionName) => setRegion(regionName))
+        .catch();
     })();
   }, []);
 
   const active = title && region;
 
   const takePhoto = async () => {
-    if (!isCameraReady) {
-      console.log("Camera is not ready yet. Wait for onCameraReady callback.");
-      return;
-    }
     const photo = await camera.takePictureAsync();
     setPhoto(photo.uri);
-    setInputRegion(region[0]?.country + ", " + region[0]?.city);
+    setInputRegion(region[0]["country"] + ", " + region[0]["city"]);
   };
 
-  const inputTitle = (text) => {
+  const inputTitlte = (text) => {
     setTitle(text);
   };
 
-  const handleCreate = () => {
+  const hendleCreate = async () => {
     if (!title || !location || !photoi) {
-      alert("Enter all data please!!!");
+      alert("Enter all data pleace!!!");
       return;
     }
-    navigation.navigate("PostList", { photoi, location, inputRegion, title });
+    const { payload } = await dispatch(fetchUploadPhoto(photoi));
+    await dispatch(
+      fetchAddPost({ photo: payload, title, inputRegion, location, uid })
+    );
+    navigation.navigate("PostList");
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior="padding"
-      keyboardVerticalOffset={120}
-    >
-      <ScrollView contentContainerStyle={styles.postContainer}>
-        <View style={styles.postContainer}>
-          {isCameraReady ? (
-            <Camera style={styles.postImg} ref={setCamera}>
-              <Image
-                source={{ uri: photoi }}
-                style={{ height: 220, width: 220, marginTop: -80 }}
-              />
-            </Camera>
-          ) : (
-            <View style={styles.postImgPlaceholder} />
-          )}
-
+    <ScrollView bounces={false}>
+      <View style={styles.container}>
+        <Camera style={styles.cameraContainer} ref={setCamera}>
+          <Image source={{ uri: photoi }} style={{ height: 240, width: 343 }} />
           <TouchableOpacity
-            style={styles.postImgAdd}
-            activeOpacity={0.7}
+            style={styles.cameraIcon}
+            activeOpacity={0.5}
             onPress={takePhoto}
           >
             <FontAwesome name="camera" size={24} color="white" />
           </TouchableOpacity>
+        </Camera>
 
-          <Text style={styles.postImgText}>Загрузите фото</Text>
-          <View style={styles.postForm}>
-            <TextInput
-              style={styles.postName}
-              placeholder="Название..."
-              inputMode="text"
-              onChangeText={inputTitle}
-            />
-            <TextInput
-              style={styles.postName}
-              placeholder="Местность..."
-              inputMode="text"
-              value={inputRegion}
-            />
-
-            <TouchableOpacity
-              style={active ? styles.postButtonActive : styles.postButton}
-              activeOpacity={0.5}
-              onPress={handleCreate}
+        <View style={styles.postForm}>
+          <Text style={styles.postImgText}>Додати фото</Text>
+          <TextInput
+            style={styles.postName}
+            placeholder="Назва..."
+            inputMode="text"
+            onChangeText={inputTitlte}
+          />
+          <TextInput
+            style={styles.postName}
+            placeholder="Розташування..."
+            inputMode="navigation"
+            value={inputRegion}
+          />
+          <TouchableOpacity
+            style={active ? styles.postButtonActive : styles.postButton}
+            activeOpacity={0.5}
+            onPress={hendleCreate}
+          >
+            <Text
+              style={
+                active ? styles.postButtonTextActive : styles.postButtonText
+              }
             >
-              <Text style={styles.postButtonText}>Опубликовать</Text>
-            </TouchableOpacity>
-          </View>
+              Опублікувати
+            </Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  postContainer: {
+  container: {
     flex: 1,
-    marginLeft: 16,
-    marginRight: 16,
-    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
   },
-  postImg: {
-    flex: 3,
+  cameraContainer: {
     marginTop: 32,
-    marginLeft: 16,
-    marginRight: 16,
-    color: "#F6F6F6",
+    width: 343,
     height: 240,
+    backgroundColor: "#F6F6F6",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    position: "relative",
+    overflow: "hidden",
   },
-  postImgAdd: {
+  cameraIcon: {
     position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginTop: -150,
-    marginLeft: -25,
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-    padding: 3,
-    borderColor: "#ffffff",
-    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
   postImgText: {
-    marginLeft: 16,
+    color: "#fff",
     marginTop: 8,
-    fontSize: 16,
     color: "#BDBDBD",
+    fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 19,
   },
   postForm: {
     flex: 3,
-    marginLeft: 16,
-    marginRight: 16,
   },
   postButton: {
-    backgroundColor: "#E8E8E8",
+    backgroundColor: "#F6F6F6",
     height: 50,
     width: 343,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 100,
-    marginTop: 44,
+    marginTop: 32,
+    marginBottom: 32,
   },
   postButtonActive: {
     backgroundColor: "#FF6C00",
@@ -198,22 +180,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 100,
-    marginTop: 44,
+    marginTop: 32,
+    marginBottom: 32,
   },
   postButtonText: {
-    color: "#fff",
+    color: "#BDBDBD",
     fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 19,
+  },
+  postButtonTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 19,
   },
   postName: {
-    width: 343,
     height: 50,
-    borderRadius: 8,
-    marginTop: 33,
+    marginTop: 32,
+    fontStyle: "normal",
+    fontWeight: "400",
     fontSize: 16,
+    lineHeight: 19,
     borderBottomColor: "#E8E8E8",
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
   },
-  postContainer: {},
 });
 
 export default CreatePost;
