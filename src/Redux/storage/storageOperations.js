@@ -8,8 +8,8 @@ export const fetchUploadPhoto = createAsyncThunk(
   "storage/fetchUploadPhoto",
   async (data, thunkAPI) => {
     try {
-      const responce = await fetch(data);
-      const file = await responce.blob();
+      const response = await fetch(data);
+      const file = await response.blob();
       const uid = Date.now().toString();
       const storageRef = ref(storage, uid);
       await uploadBytes(storageRef, file);

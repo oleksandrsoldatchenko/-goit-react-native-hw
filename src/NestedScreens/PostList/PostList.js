@@ -31,9 +31,10 @@ const PostList = ({navigation}) => {
         <ProfileElement />
         <FlatList
           data={posts}
-          keyExtractor={(indx) => indx.toString()}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View
+              key={item.id}
               style={{
                 marginBottom: 30,
                 justifyContent: "center",
