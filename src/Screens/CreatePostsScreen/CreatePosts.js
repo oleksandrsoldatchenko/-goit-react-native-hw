@@ -23,7 +23,10 @@ const CreatePost = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
   const [photoi, setPhoto] = useState(null);
   const [location, setLocation] = useState(null);
+  const [photoLocation, setPhotoLocation] = useState(null);
+  const [initialRegion, setInitialRegion] = useState(null);
   const [region, setRegion] = useState(null);
+  const [inputRegionValue, setInputRegionValue] = useState("");
   const [inputRegion, setInputRegion] = useState("");
   const [title, setTitle] = useState("");
 
@@ -50,7 +53,20 @@ const CreatePost = ({ navigation }) => {
         .then((coords) => {
           return Location.reverseGeocodeAsync(coords);
         })
-        .then((regionName) => setRegion(regionName))
+        .then((regionName) => {
+          if (regionName) {
+            setRegion(regionName);
+            setInputRegion(
+              regionName[0]["country"] + ", " + regionName[0]["city"]
+            );
+            setInitialRegion({
+              latitude: regionName[0].latitude,
+              longitude: regionName[0].longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            });
+          }
+        })
         .catch();
     })();
   }, []);
@@ -59,35 +75,51 @@ const CreatePost = ({ navigation }) => {
 
   const takePhoto = async () => {
     const photo = await camera.takePictureAsync();
-    setPhoto(photo.uri);
-    setInputRegion(region[0]["country"] + ", " + region[0]["city"]);
+    if (photo) {
+      setPhoto(photo.uri);
+      const location = await Location.reverseGeocodeAsync({
+        latitude: region[0].latitude,
+        longitude: region[0].longitude,
+      });
+      if (location && location.length > 0) {
+        const formattedLocation =
+          location[0]["country"] + ", " + location[0]["city"];
+        setPhotoLocation(formattedLocation);
+        setInputRegion(formattedLocation);
+      }
+    }
   };
 
-  const inputTitlte = (text) => {
+  const inputTitle = (text) => {
     setTitle(text);
   };
 
   const hendleCreate = async () => {
+    navigation.navigate("PostList");
     if (!title || !location || !photoi) {
-      alert("Enter all data pleace!!!");
+      alert("Enter all data please!!!");
       return;
     }
     const { payload } = await dispatch(fetchUploadPhoto(photoi));
     await dispatch(
       fetchAddPost({ photo: payload, title, inputRegion, location, uid })
     );
-    navigation.navigate("PostList");
   };
 
   return (
     <ScrollView bounces={false}>
       <View style={styles.container}>
-        <Camera style={styles.cameraContainer} ref={setCamera}>
+        <Camera
+          style={styles.cameraContainer}
+          ref={setCamera}
+          region={initialRegion}
+        >
           <Image source={{ uri: photoi }} style={{ height: 240, width: 343 }} />
           <TouchableOpacity
             style={styles.cameraIcon}
             activeOpacity={0.5}
             onPress={takePhoto}
+            disabled={!initialRegion}
           >
             <FontAwesome name="camera" size={24} color="white" />
           </TouchableOpacity>
@@ -99,22 +131,41 @@ const CreatePost = ({ navigation }) => {
             style={styles.postName}
             placeholder="Назва..."
             inputMode="text"
-            onChangeText={inputTitlte}
+            onChangeText={inputTitle}
           />
           <TextInput
             style={styles.postName}
             placeholder="Розташування..."
-            inputMode="navigation"
-            value={inputRegion}
+            inputMode="text"
+            value={
+              inputRegionValue ||
+              (region && region[0]["country"] + ", " + region[0]["city"])
+            }
+            onChangeText={(text) => {
+              setInputRegionValue(text);
+              setInputRegion(text);
+            }}
+            editable={!!initialRegion}
           />
+
           <TouchableOpacity
-            style={active ? styles.postButtonActive : styles.postButton}
+            style={
+              active && initialRegion
+                ? styles.postButtonActive
+                : styles.postButton
+            }
             activeOpacity={0.5}
-            onPress={hendleCreate}
+            onPress={() => {
+              setInputRegion(inputRegionValue);
+              hendleCreate();
+            }}
+            disabled={!active || !initialRegion}
           >
             <Text
               style={
-                active ? styles.postButtonTextActive : styles.postButtonText
+                active && initialRegion
+                  ? styles.postButtonTextActive
+                  : styles.postButtonText
               }
             >
               Опублікувати
